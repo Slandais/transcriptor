@@ -20,34 +20,31 @@ IMAGES_DIR = Path("img")
 OUTPUT_PDF = Path("feht-ychebnik-Valvil-19v.fr.v4.pdf")
 TEMP_OUTPUT_PDF = Path("feht-ychebnik-Valvil-19v.fr.v4.base.pdf")
 
-# Manual crop presets rebuilt from the user's cropped references.
-# Coordinates are expressed in source-page points: (left, bottom, right, top).
-CROP_PRESETS: dict[int, tuple[float, float, float, float]] = {
-    29: (18, 8, 785, 292),
-    30: (90, 8, 700, 292),
-    31: (18, 8, 785, 292),
-    32: (76, 10, 610, 292),
-    33: (150, 8, 575, 292),
-    34: (95, 8, 565, 292),
-    35: (34, 18, 754, 284),
-    36: (34, 18, 754, 284),
-    37: (30, 18, 756, 284),
-    38: (28, 10, 770, 288),
-    39: (26, 10, 770, 288),
-    40: (26, 10, 770, 288),
-    41: (24, 10, 772, 288),
-    42: (24, 10, 772, 288),
-    43: (24, 10, 772, 288),
-    44: (24, 10, 772, 288),
-    45: (24, 10, 772, 288),
-    46: (24, 10, 772, 288),
-    47: (24, 10, 772, 288),
-    48: (24, 10, 772, 288),
-    49: (24, 10, 772, 288),
-    50: (24, 10, 772, 288),
-    51: (110, 18, 690, 280),
-    52: (110, 18, 690, 280),
-}
+ILLUSTRATION_CAPTIONS = [
+    "Garde de la contre pointe",
+    "Garde basse de l'espadon",
+    "Garde haute de l'espadon",
+    "Garde du déterminé",
+    "Garde haute du hongrois",
+    "Garde du montagnard Ecossais",
+    "Parade et coup de manchette en dehors",
+    "Parade et coup de manchette en dedans",
+    "Parade et coup de manchette d'envers",
+    "Parade et coup de flanc en dehors",
+    "Parade et coup de flanc en dedans",
+    "Parade et coup de cuisse en dehors",
+    "Parade et coup de cuisse en dedans",
+    "Parade et coup de tête",
+    "Coup d'arrêt pris sur le coup de tête",
+    "Coup d'arrêt pris sur le coup de flanc en dedans",
+    "Coup d'arrêt pris sur le coup de flanc en dehors",
+    "Coup de temps de tête",
+    "Parade et coup de figure",
+    "Volte en dehors",
+    "Volte en dedans",
+    "Demi-Volte",
+    "Garde acnienne Slavonne",
+]
 
 
 class CenteredSpacedText(Flowable):
@@ -438,6 +435,18 @@ def build_notice_story(regular_font: str) -> list:
 
 
 def build_user_illustrations_story() -> list:
+    styles = getSampleStyleSheet()
+    caption_style = ParagraphStyle(
+        "IllustrationCaption",
+        parent=styles["BodyText"],
+        fontName="Helvetica-Oblique",
+        fontSize=11,
+        leading=15,
+        alignment=TA_CENTER,
+        spaceBefore=4 * mm,
+        spaceAfter=0,
+    )
+
     files = sorted(
         [p for p in IMAGES_DIR.iterdir() if p.is_file()],
         key=lambda p: (0, int(p.stem)) if p.stem.isdigit() else (1, p.name.lower()),
@@ -447,12 +456,14 @@ def build_user_illustrations_story() -> list:
     max_width = A4[0] - (2 * 18 * mm)
     max_height = A4[1] - (2 * 18 * mm)
 
-    for image_path in files:
+    for idx, image_path in enumerate(files):
         story.append(PageBreak())
         story.append(Spacer(1, 10 * mm))
         img = Image(str(image_path))
         img._restrictSize(max_width, max_height)
         story.append(img)
+        if idx < len(ILLUSTRATION_CAPTIONS):
+            story.append(Paragraph(ILLUSTRATION_CAPTIONS[idx], caption_style))
 
     return story
 
